@@ -3,8 +3,12 @@ import datetime
 import socket
 import logging
 import construct
+import click
 from typing import Any, List, Optional  # noqa: F401
 
+from .click_common import (
+    DeviceGroupMeta, device_command, echo_return_status
+)
 from .protocol import Message
 
 _LOGGER = logging.getLogger(__name__)
@@ -92,7 +96,7 @@ class DeviceInfo:
         return self.data
 
 
-class Device:
+class Device(metaclass=DeviceGroupMeta):
     """Base class for all device implementations.
     This is the main class providing the basic protocol handling for devices using
     the ``miIO`` protocol.
@@ -267,6 +271,10 @@ class Device:
                 return self.send(command, parameters, retry_count - 1)
             raise DeviceException("No response from the device") from ex
 
+    @device_command(
+        click.argument('cmd', required=True),
+        click.argument('parameters', required=False),
+    )
     def raw_command(self, cmd, params):
         """Send a raw command to the device.
         This is mostly useful when trying out commands which are not
@@ -276,6 +284,14 @@ class Device:
         :param dict params: Parameters to send"""
         return self.send(cmd, params)
 
+    @device_command(
+        echo_return_status("",
+                           "Model: {result.model}\n"
+                           "Hardware version: {result.hardware_version}\n"
+                           "Firmware version: {result.firmware_version}\n"
+                           "Network: {result.network_interface}\n"
+                           "AP: {result.accesspoint}\n")
+    )
     def info(self) -> DeviceInfo:
         """Get miIO protocol information from the device.
         This includes information about connected wlan network,
