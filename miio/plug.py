@@ -2,6 +2,9 @@ import logging
 from typing import Dict, Any, Optional
 from collections import defaultdict
 from .device import Device
+from .click_common import (
+    DeviceGroupMeta, device_command, echo_return_status
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -34,9 +37,14 @@ class PlugStatus:
         return s
 
 
-class Plug(Device):
+class Plug(Device, metaclass=DeviceGroupMeta):
     """Main class representing the smart wifi socket / plug."""
 
+    @device_command(
+        echo_return_status("",
+                           "Power: {result.power}\n"
+                           "Temperature: {result.temperature}")
+        )
     def status(self) -> PlugStatus:
         """Retrieve properties."""
         properties = ['power', 'temperature']
@@ -56,10 +64,12 @@ class Plug(Device):
         return PlugStatus(
             defaultdict(lambda: None, zip(properties, values)))
 
+    @device_command(echo_return_status("Powering on"))
     def on(self):
         """Power on."""
-        return self.send("set_power", ["on"])
+        return self.send("set_power", ["on"]) == ['ok']
 
+    @device_command(echo_return_status("Powering off"))
     def off(self):
         """Power off."""
-        return self.send("set_power", ["off"])
+        return self.send("set_power", ["off"]) == ['ok']
