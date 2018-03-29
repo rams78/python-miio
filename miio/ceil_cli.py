@@ -99,6 +99,12 @@ def on(dev: miio.Ceil):
 def off(dev: miio.Ceil):
     """Power off."""
     click.echo("Power off: %s" % dev.off())
+    
+@cli.command()
+@pass_dev
+def toggle(dev: miio.Ceil):
+  """Toggle power state"""
+  click.echo("Toggle power: %s" % dev.toggle())
 
 
 @cli.command()
