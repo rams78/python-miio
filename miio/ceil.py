@@ -105,7 +105,7 @@ class Ceil(Device):
     
     def toggle(self):
         """Togle power on/off"""
-        return self.send("toggle_power")
+        return self.send("toggle")
 
     def set_brightness(self, level: int):
         """Set brightness level."""
